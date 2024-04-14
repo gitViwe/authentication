@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using Shared;
+using System.ComponentModel.DataAnnotations;
 
 namespace Client.Pages;
 
@@ -15,6 +16,12 @@ public partial class Home
 
     private bool _processing = false;
     private IJSObjectReference module = default!;
+    private AuthenticationType _authenticationType = AuthenticationType.Register;
+    private enum AuthenticationType
+    {
+        Register = 1,
+        Login = 2,
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -29,7 +36,7 @@ public partial class Home
     {
         _processing = true;
 
-        _ = await WebAuthenticationManager.ProcessRegistrationAsync(registrationId: Guid.NewGuid().ToString(), Model.RegisteredUserName);
+        _ = await WebAuthenticationManager.ProcessRegistrationAsync(registrationId: Guid.NewGuid().ToString(), Model.RegisterUserEmail);
 
         _processing = false;
     }
@@ -71,7 +78,8 @@ public partial class Home
 
 public class UserData(string RegisterUserName, string AuthenticateUserName)
 {
-    public string RegisteredUserName { get; set; } = RegisterUserName;
+    [EmailAddress]
+    public string RegisterUserEmail { get; set; } = RegisterUserName;
     public string AuthenticateUserName { get; set; } = AuthenticateUserName;
 }
 

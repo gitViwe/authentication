@@ -4,7 +4,7 @@ name: web-authentication-demo
 services:
 
   client:
-    image: hubviwe/web-authentication-demo.client:0.0.14
+    image: hubviwe/web-authentication-demo.client:0.0.15
     container_name: client
     hostname: client
     build:
@@ -16,7 +16,7 @@ services:
       - api
 
   api:
-    image: hubviwe/web-authentication-demo.api:0.0.14
+    image: hubviwe/web-authentication-demo.api:0.0.15
     container_name: api
     hostname: api
     restart: on-failure

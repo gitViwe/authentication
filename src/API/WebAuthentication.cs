@@ -50,9 +50,9 @@ public class WebAuthentication
                 topOrigins: null,
                 rpDisplayName: "Passkeys demonstration",
                 user: new PublicKeyCredentialUserEntity(
-                    name: $"{context.Request.Scheme}://{context.Request.Host}",
+                    name: userName,
                     id: userIdBytes,
-                    displayName: userName),
+                    displayName: $"{context.Request.Scheme}://{context.Request.Host} [{userName}]"),
                 challengeSize: 32,
                 pubKeyCredParams:
                 [
