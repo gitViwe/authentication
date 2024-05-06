@@ -1,9 +1,4 @@
-﻿using gitViwe.Shared.Cache;
-using WebAuthn.Net.Models.Abstractions;
-using WebAuthn.Net.Storage.RegistrationCeremony;
-using WebAuthn.Net.Storage.RegistrationCeremony.Models;
-
-namespace API.Storage.RegistrationCeremony.Implementation;
+﻿namespace API.Storage.RegistrationCeremony.Implementation;
 
 public class DefaultCacheRegistrationCeremonyStorage<TContext> : IRegistrationCeremonyStorage<TContext>
     where TContext : class, IWebAuthnContext

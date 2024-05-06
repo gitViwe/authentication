@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Shared;
+using Shared.Model;
 using System.ComponentModel.DataAnnotations;
 
 namespace Client.Pages;

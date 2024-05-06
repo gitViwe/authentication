@@ -1,21 +1,4 @@
-﻿using Azure.Core;
-using gitViwe.Shared.Cache;
-using Microsoft.Extensions.DependencyInjection;
-using WebAuthn.Net.Models.Protocol.Enums;
-using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.CreateOptions;
-using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.VerifyAssertion;
-using WebAuthn.Net.Models.Protocol.Json.RegistrationCeremony.CreateCredential;
-using WebAuthn.Net.Models.Protocol.Json.RegistrationCeremony.CreateOptions;
-using WebAuthn.Net.Models.Protocol.RegistrationCeremony.CreateOptions;
-using WebAuthn.Net.Services.AuthenticationCeremony;
-using WebAuthn.Net.Services.AuthenticationCeremony.Models.CreateOptions;
-using WebAuthn.Net.Services.AuthenticationCeremony.Models.VerifyAssertion;
-using WebAuthn.Net.Services.RegistrationCeremony;
-using WebAuthn.Net.Services.RegistrationCeremony.Models.CreateCredential;
-using WebAuthn.Net.Services.RegistrationCeremony.Models.CreateOptions;
-using WebAuthn.Net.Services.Serialization.Cose.Models.Enums;
-
-namespace API;
+﻿namespace API;
 
 public class WebAuthentication
 {

@@ -1,9 +1,4 @@
-﻿using API.Persistence;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Shared;
-
-namespace API.Endpoint;
+﻿namespace API.Endpoint;
 
 public static class UserDetailEndpoint
 {

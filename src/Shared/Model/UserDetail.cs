@@ -1,23 +1,23 @@
-﻿namespace Shared;
+﻿namespace Shared.Model;
 
 public class UserDetail
 {
     public int Id { get; set; }
     public string UserName { get; set; } = string.Empty;
-    public ICollection<KanBanSection> KanBanSections { get; set; } = new HashSet<KanBanSection>();
-    public ICollection<UserDetailHandle> UserDetailHandles { get; set; } = new HashSet<UserDetailHandle>();
+    public ICollection<KanBanSection> KanBanSections { get; set; } = [];
+    public ICollection<UserDetailHandle> UserDetailHandles { get; set; } = [];
 }
 
 public class UserDetailDTO
 {
-	public int Id { get; set; }
-	public string UserName { get; set; } = string.Empty;
-	public IEnumerable<KanBanSectionDTO> KanBanSections { get; set; } = Enumerable.Empty<KanBanSectionDTO>();
-	public IEnumerable<KanBanTaskItemDTO> KanBanTaskItems { get; set; } = Enumerable.Empty<KanBanTaskItemDTO>();
+    public int Id { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public IEnumerable<KanBanSectionDTO> KanBanSections { get; set; } = [];
+    public IEnumerable<KanBanTaskItemDTO> KanBanTaskItems { get; set; } = [];
 
-	public static UserDetailDTO ToDTO(UserDetail detail)
+    public static UserDetailDTO ToDTO(UserDetail detail)
     {
-		return new UserDetailDTO()
+        return new UserDetailDTO()
         {
             Id = detail.Id,
             UserName = detail.UserName,

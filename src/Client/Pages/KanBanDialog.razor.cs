@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using Shared;
+using Shared.Model;
 using System.ComponentModel.DataAnnotations;
 
 namespace Client.Pages;

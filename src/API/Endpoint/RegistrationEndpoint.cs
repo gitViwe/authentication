@@ -1,12 +1,4 @@
-﻿using API.Persistence;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
-using Shared;
-using WebAuthn.Net.Models.Protocol.Json.RegistrationCeremony.CreateCredential;
-using WebAuthn.Net.Models.Protocol.Json.RegistrationCeremony.CreateOptions;
-
-namespace API.Endpoint;
+﻿namespace API.Endpoint;
 
 public static class RegistrationEndpoint
 {
@@ -28,7 +20,7 @@ public static class RegistrationEndpoint
     private static async Task<IResult> GetRegistrationOptionsAsync(
         [FromQuery] string UserName,
         [FromServices] WebAuthentication auth,
-		HttpContext context)
+        HttpContext context)
     {
         byte[] userHandle = Guid.NewGuid().ToByteArray();
         var options = await auth.GetRegistrationOptionsAsync(context, userHandle, UserName);
@@ -37,11 +29,11 @@ public static class RegistrationEndpoint
     }
 
     private static async Task<IResult> CompleteRegistrationAsync(
-		[FromQuery] string UserName,
-		[FromServices] WebAuthentication auth,
+        [FromQuery] string UserName,
+        [FromServices] WebAuthentication auth,
         [FromBody] RegistrationResponseJSON json,
         HttpContext context,
-		WebAuthenticationDbContext dbContext)
+        WebAuthenticationDbContext dbContext)
     {
         byte[] userHandle = await auth.CompleteRegistrationAsync(context, json);
 
@@ -59,16 +51,16 @@ public static class RegistrationEndpoint
 
         var user = await dbContext.UserDetails.FirstOrDefaultAsync(user => user.UserName.Equals(UserName));
 
-		if (user is null)
-		{
-			user = new UserDetail() { UserName = UserName };
-			await dbContext.AddAsync(user);
-			await dbContext.SaveChangesAsync();
-		}
+        if (user is null)
+        {
+            user = new UserDetail() { UserName = UserName };
+            await dbContext.AddAsync(user);
+            await dbContext.SaveChangesAsync();
+        }
 
-		user.UserDetailHandles.Add(new() { UserHandle = userHandleBase64 });
-		await dbContext.SaveChangesAsync();
+        user.UserDetailHandles.Add(new() { UserHandle = userHandleBase64 });
+        await dbContext.SaveChangesAsync();
 
-		return Results.Ok(userHandleBase64);
+        return Results.Ok(userHandleBase64);
     }
 }

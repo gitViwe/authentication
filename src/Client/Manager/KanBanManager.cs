@@ -1,5 +1,5 @@
 ﻿using MudBlazor;
-using Shared;
+using Shared.Model;
 using System.Net.Http.Json;
 
 namespace Client.Manager;

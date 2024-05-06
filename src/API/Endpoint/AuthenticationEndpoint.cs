@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.CreateOptions;
-using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.VerifyAssertion;
-
-namespace API.Endpoint;
+﻿namespace API.Endpoint;
 
 public static class AuthenticationEndpoint
 {

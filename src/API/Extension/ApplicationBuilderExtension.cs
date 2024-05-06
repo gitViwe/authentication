@@ -1,13 +1,10 @@
-﻿using API.Persistence;
-using Microsoft.EntityFrameworkCore;
+﻿namespace API.Extension;
 
-namespace API.Extension;
-
-public static class WebApplicationExtension
+public static class ApplicationBuilderExtension
 {
-    public static WebApplication CreateDatabaseTable(this WebApplication app)
+    public static WebApplication CreateDatabaseTable(this IApplicationBuilder app)
     {
-        using IServiceScope scope = app.Services.CreateScope();
+        using IServiceScope scope = app.ApplicationServices.CreateScope();
         using var context = scope.ServiceProvider.GetRequiredService<WebAuthenticationDbContext>();
 
         context.Database.Migrate();
