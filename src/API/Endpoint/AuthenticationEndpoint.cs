@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.CreateOptions;
 using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.VerifyAssertion;
 
@@ -37,8 +38,13 @@ public static class AuthenticationEndpoint
     {
         byte[] userHandle = await auth.CompleteAuthenticationAsync(context, json);
 
-        string userId = Utility.ByteArrayToString(userHandle);
+        if (userHandle.Length <= 0)
+        {
+            return Results.BadRequest("Invalid credentials.");
+        }
 
-        return Results.Ok(userId);
+        string userHandleBase64 = WebEncoders.Base64UrlEncode(userHandle);
+
+        return Results.Ok(userHandleBase64);
     }
 }

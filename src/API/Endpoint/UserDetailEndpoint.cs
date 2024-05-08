@@ -9,7 +9,7 @@ public static class UserDetailEndpoint
 {
     public static IEndpointRouteBuilder MapUserDetailEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/users/{userId}", GetUserDetailAsync)
+        app.MapGet("/users/{userHandleBase64}", GetUserDetailAsync)
             .WithName("User Detail")
             .Produces<UserDetail>()
             .ProducesProblem(StatusCodes.Status404NotFound)
@@ -24,13 +24,13 @@ public static class UserDetailEndpoint
     }
 
     private static async Task<IResult> GetUserDetailAsync(
-        [FromRoute] string userId,
+        [FromRoute] string userHandleBase64,
         [FromServices] WebAuthenticationDbContext dbContext,
         CancellationToken cancellation = default)
     {
         var userHandle = await dbContext.UserDetailHandles
             .AsNoTracking()
-            .FirstOrDefaultAsync((handle => handle.UserHandle.Equals(userId.Replace("\"", string.Empty))), cancellationToken: cancellation);
+            .FirstOrDefaultAsync(handle => handle.UserHandle.Equals(userHandleBase64.Replace("\"", string.Empty)), cancellationToken: cancellation);
 
         if (userHandle is null)
         {

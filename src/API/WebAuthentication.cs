@@ -1,4 +1,5 @@
-﻿using gitViwe.Shared.Cache;
+﻿using Azure.Core;
+using gitViwe.Shared.Cache;
 using Microsoft.Extensions.DependencyInjection;
 using WebAuthn.Net.Models.Protocol.Enums;
 using WebAuthn.Net.Models.Protocol.Json.AuthenticationCeremony.CreateOptions;
@@ -38,20 +39,20 @@ public class WebAuthentication
     private const string WEBAUTHN_REGISTRATION_HEADER = "X-WebAuthn-Registration-Id";
     private const string WEBAUTHN_AUTHENTICATION_HEADER = "X-WebAuthn-Authentication-Id";
 
-    public async Task<PublicKeyCredentialCreationOptionsJSON> GetRegistrationOptionsAsync(HttpContext context, string userId)
+    public async Task<PublicKeyCredentialCreationOptionsJSON> GetRegistrationOptionsAsync(HttpContext context, byte[] userIdBytes, string userName = "User Display Name")
     {
-        byte[] userIdBytes = Utility.StringToByteArray(userId);
+        string[] origins = [.. _configuration["AllowedOrigins"]!.Split(';'), $"http://{context.Request.Host}", $"https://{context.Request.Host}"];
 
         var result = await _registrationCeremonyService.BeginCeremonyAsync(
             httpContext: context,
             request: new BeginRegistrationCeremonyRequest(
-                origins: new RegistrationCeremonyOriginParameters(allowedOrigins: _configuration["AllowedOrigins"]!.Split(';')),
+                origins: new RegistrationCeremonyOriginParameters(allowedOrigins: origins),
                 topOrigins: null,
                 rpDisplayName: "Passkeys demonstration",
                 user: new PublicKeyCredentialUserEntity(
-                    name: "Demonstration user",
+                    name: userName,
                     id: userIdBytes,
-                    displayName: "User Display Name"),
+                    displayName: $"{context.Request.Scheme}://{context.Request.Host} [{userName}]"),
                 challengeSize: 32,
                 pubKeyCredParams:
                 [
@@ -109,10 +110,12 @@ public class WebAuthentication
 
     public async Task<PublicKeyCredentialRequestOptionsJSON> GetAuthenticationOptionsAsync(HttpContext context)
     {
+        string[] origins = [.. _configuration["AllowedOrigins"]!.Split(';'), $"http://{context.Request.Host}", $"https://{context.Request.Host}"];
+
         var result = await _authenticationCeremonyService.BeginCeremonyAsync(
             httpContext: context,
             request: new BeginAuthenticationCeremonyRequest(
-                origins: new AuthenticationCeremonyOriginParameters(allowedOrigins: _configuration["AllowedOrigins"]!.Split(';')),
+                origins: new AuthenticationCeremonyOriginParameters(allowedOrigins: origins),
                 topOrigins: null,
                 userHandle: null,
                 challengeSize: 32,

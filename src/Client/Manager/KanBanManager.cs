@@ -8,9 +8,9 @@ public class KanBanManager(IHttpClientFactory Factory, ISnackbar snackbar)
 {
 	public HttpClient Client { get; } = Factory.CreateClient("API");
 
-	public async Task<KanBanDialogData?> GetUserDetailAsKanBanDialogDataAsync(string userId)
+	public async Task<KanBanDialogData?> GetUserDetailAsKanBanDialogDataAsync(string userHandleBase64)
 	{
-		var response = await Client.GetAsync($"/users/{userId}", CancellationToken.None);
+		var response = await Client.GetAsync($"/users/{userHandleBase64}", CancellationToken.None);
 
 		if (response.IsSuccessStatusCode)
 		{

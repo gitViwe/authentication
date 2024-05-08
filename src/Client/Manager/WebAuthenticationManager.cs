@@ -16,7 +16,7 @@ public class WebAuthenticationManager(IHttpClientFactory Factory, ISnackbar snac
     {
         try
         {
-            var options = await GetRegistrationOptionsAsync(registrationId);
+            var options = await GetRegistrationOptionsAsync(registrationId, userName);
 
             var response = await runtime.InvokeAsync<RegistrationResponseJSON>("ProcessRegistration", [options]);
 
@@ -46,12 +46,12 @@ public class WebAuthenticationManager(IHttpClientFactory Factory, ISnackbar snac
         }
     }
 
-    private async Task<PublicKeyCredentialCreationOptionsJSON> GetRegistrationOptionsAsync(string registrationId)
+    private async Task<PublicKeyCredentialCreationOptionsJSON> GetRegistrationOptionsAsync(string registrationId, string userName)
     {
         Client.DefaultRequestHeaders.Remove("X-WebAuthn-Registration-Id");
         Client.DefaultRequestHeaders.Add("X-WebAuthn-Registration-Id", registrationId);
 
-        var options = await Client.GetFromJsonAsync<PublicKeyCredentialCreationOptionsJSON>("registration-options", CancellationToken.None);
+        var options = await Client.GetFromJsonAsync<PublicKeyCredentialCreationOptionsJSON>($"registration-options?UserName={userName}", CancellationToken.None);
         ArgumentNullException.ThrowIfNull(options, nameof(options));
         return options;
     }
@@ -59,9 +59,15 @@ public class WebAuthenticationManager(IHttpClientFactory Factory, ISnackbar snac
     private async Task<string> CompleteRegistrationAsync(RegistrationResponseJSON json, string userName)
     {
         var responseMessage = await Client.PostAsJsonAsync($"complete-registration?UserName={userName}", json, CancellationToken.None);
-        string userId = await responseMessage.Content.ReadAsStringAsync();
-		snackbar.Add("Registered.", Severity.Info);
-		return userId;
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            string userHandleBase64 = await responseMessage.Content.ReadAsStringAsync();
+		    snackbar.Add("Registered.", Severity.Info);
+		    return userHandleBase64;
+        }
+
+        throw new Exception("Invalid credentials");
     }
 
     private async Task<PublicKeyCredentialRequestOptionsJSON> GetAuthenticationOptionsAsync(string authenticationId)
@@ -77,7 +83,13 @@ public class WebAuthenticationManager(IHttpClientFactory Factory, ISnackbar snac
     private async Task<string> CompleteAuthenticationAsync(AuthenticationResponseJSON json)
     {
         var responseMessage = await Client.PostAsJsonAsync("complete-authentication", json, CancellationToken.None);
-        string userId = await responseMessage.Content.ReadAsStringAsync();
-        return userId;
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            string userHandleBase64 = await responseMessage.Content.ReadAsStringAsync();
+            return userHandleBase64;
+        }
+
+        throw new Exception("Invalid credentials");
     }
 }
