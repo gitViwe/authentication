@@ -284,11 +284,4 @@ internal static class ServiceCollectionExtension
             options.SetRedactor<HubErasingRedactor>(new DataClassificationSet(HubTaxonomy.RedactSensitiveData));
         });
     }
-
-    internal static IServiceCollection RegisterApiDocumentation(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        throw new NotImplementedException();
-    }
 }
