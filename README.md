@@ -3,7 +3,7 @@ The technology builds on public/private keys, allowing authentication to happen 
 
 ### Built With
 
-* [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+* [.NET 10](https://dotnet.microsoft.com/en-us/download)
 * [Blazor](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
 * [WebAuthn.Net](https://github.com/dodobrands/WebAuthn.Net/tree/main)
 

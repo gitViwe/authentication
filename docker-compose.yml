@@ -1,56 +1,46 @@
-version: "3.9"
-name: web-authentication-demo
+name: authentication
 
 services:
 
-  client:
-    image: hubviwe/web-authentication-demo.client:0.0.15
-    container_name: client
-    hostname: client
-    build:
-        context: src/
-        dockerfile: Client/Dockerfile
-    ports:
-      - 5136:8080
-    depends_on:
-      - api
-
-  api:
-    image: hubviwe/web-authentication-demo.api:0.0.15
-    container_name: api
-    hostname: api
+  auth-api:
+    container_name: auth-api
+    hostname: auth-api
     restart: on-failure
     build:
-        context: src/
-        dockerfile: API/Dockerfile
+      context: src/Authentication
+      dockerfile: Authentication/Dockerfile
     environment:
-      - "ASPNETCORE_ENVIRONMENT=Docker"
+      ASPNETCORE_ENVIRONMENT: Development
     ports:
-      - 5291:8080
+      - 5056:8080
+    networks:
+      - auth-network
     depends_on:
-      - mssql
-      - redis-cache
+      postgres:
+        condition: service_healthy
 
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04
-    hostname: mssql
-    container_name: thebase-mssql
+  postgres:
+    image: postgres:16.3-alpine
+    hostname: postgres
+    container_name: postgres
     restart: on-failure
-    ports:
-      - 1433:1433
     environment:
-      - "ACCEPT_EULA=Y"
-      - "MSSQL_SA_PASSWORD=Example123"
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: auth-db
     volumes:
-      - sqlsystem:/var/opt/mssql/
-
-  redis-cache:
-    image: redis:latest
-    hostname: redis
-    restart: always
-    container_name: redis-cache
-    ports:
-      - 6379:6379
+      - postgresqlsystem:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d auth-db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auth-network
 
 volumes:
-  sqlsystem:
+  postgresqlsystem:
+    
+networks:
+  auth-network:
+    driver: bridge
