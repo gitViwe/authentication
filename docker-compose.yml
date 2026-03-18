@@ -12,6 +12,7 @@ services:
       dockerfile: Authentication/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      TokenValidationParameterOption__ValidIssuer: http://localhost:5056
     ports:
       - 5056:8080
     depends_on:
