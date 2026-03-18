@@ -4,6 +4,7 @@ services:
 
   auth-api:
     container_name: auth-api
+    image: hubviwe/thebase.auth.api:0.9.14
     hostname: auth-api
     restart: on-failure
     build:

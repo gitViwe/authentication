@@ -41,6 +41,13 @@ internal sealed class DataAnnotationValidationFilter(Type targetType) : IEndpoin
 
         if (argument is not null)
         {
+            Dictionary<string, object?> tags = new()
+            {
+                { OpenTelemetryTagKey.PREFIX + "data_annotation_validation_filter.type", targetType.FullName },
+            };
+            
+            OpenTelemetryActivity.InternalProcess.StartActivity("DataAnnotationValidationFilter", "Validating request", tags: tags);
+            
             var validationContext = new ValidationContext(argument, context.HttpContext.RequestServices, items: null);
             List<ValidationResult> validationResults = [];
 
