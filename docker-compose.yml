@@ -7,7 +7,7 @@ services:
     hostname: auth-api
     restart: on-failure
     build:
-      context: src/Authentication
+      context: src/
       dockerfile: Authentication/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development

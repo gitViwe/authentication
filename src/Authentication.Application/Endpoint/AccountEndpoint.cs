@@ -43,6 +43,17 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
+        accountGroup.MapPut("detail", UpdateDetailsAsync)
+            .WithName(nameof(UpdateDetailsAsync))
+            .DataAnnotationValidation<UpdateUserRequest>()
+            .Produces(StatusCodes.Status204NoContent)
+            .AddOpenApiOperationTransformer((operation, _, _) =>
+            {
+                operation.Summary = "Update user details.";
+                operation.Description = "Update the current user's first name and last name.";
+                return Task.CompletedTask;
+            });
+        
         return app;
     }
     
@@ -98,6 +109,24 @@ public static class AccountEndpoint
 
         return response.Succeeded
             ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext!, response.StatusCode, response.Message);
+            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
+    }
+    
+    private static async Task<IResult> UpdateDetailsAsync(
+        UpdateUserRequest request,
+        [FromServices] UserDetailUpdateCommandHandler handler,
+        HttpContext httpContext,
+        CancellationToken token = default)
+    {
+        var response = await handler.HandleAsync(new UserDetailUpdateCommand()
+        {
+            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+        }, token);
+
+        return response.Succeeded
+            ? Results.NoContent()
+            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
     }
 }

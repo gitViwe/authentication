@@ -1,6 +1,6 @@
 namespace Authentication.Shared.Contract;
 
-public sealed class UpdateUserRequest
+public class UpdateUserRequest
 {
     [Required]
     public string FirstName { get; init; } = string.Empty;

@@ -5,8 +5,9 @@ internal static class ServiceCollectionExtension
     internal static IServiceCollection RegisterFeatures(this IServiceCollection services)
     {
         return services
-            .AddScoped<RegisterUserCommandHandler>()
+            .AddScoped<UserDetailQueryHandler>()
             .AddScoped<LoginUserCommandHandler>()
-            .AddScoped<UserDetailQueryHandler>();
+            .AddScoped<RegisterUserCommandHandler>()
+            .AddScoped<UserDetailUpdateCommandHandler>();
     }
 }
