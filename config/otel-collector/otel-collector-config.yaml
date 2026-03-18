@@ -1,0 +1,71 @@
+# Receivers accept data from OpenTelemetry instruments or other processes.
+receivers:
+  otlp:
+    protocols:
+      # HTTP protocol configuration
+      http:
+        endpoint: :4318  # The endpoint to receive data on
+        include_metadata: true  # Whether to include metadata with the telemetry data
+        cors:
+          allowed_origins:  # Origins allowed for CORS
+            - https://localhost:7267
+            - http://localhost:5062
+      # gRPC protocol configuration
+      grpc:
+        endpoint: :4317  # The endpoint to receive gRPC data on
+
+# Processors can modify, filter, and enhance the telemetry data.
+processors:
+  batch:
+    timeout: 1s  # The time after which a batch will be sent regardless of size
+  resource:
+    attributes:
+      - key: otlp-collector-environment
+        value: docker  # Environment attribute to be added to all telemetry data
+        action: insert
+
+# Exporters send the telemetry data to various destinations.
+exporters:
+  otlphttp/seq:
+    endpoint: http://seq:5341/ingest/otlp  # Endpoint for sending data to Seq
+    tls:
+      insecure: true  # Disable TLS for the connection (not recommended for production)
+  otlphttp/jaeger:
+    endpoint: http://jaeger:4318  # Endpoint for sending data to Jaeger
+    tls:
+      insecure: true # Disable TLS for the connection (not recommended for production)
+  logging:
+    loglevel: info  # Log level for the logging exporter
+  prometheus:
+    endpoint: :8889  # Endpoint for exposing Prometheus metrics
+    const_labels:
+      label1: otlp-collector-docker  # Constant label added to all Prometheus metrics
+  prometheusremotewrite:
+     endpoint: http://prometheus:9090/api/v1/write  # Endpoint for Prometheus remote write feature
+     tls:
+       insecure: true # Disable TLS for the connection (not recommended for production)
+
+# Extensions provide capabilities that can be added to the service, such as health checks.
+extensions:
+ health_check:  # Health check extension for checking the health of the collector
+ pprof:  # pprof extension for profiling and debugging purposes
+   endpoint: :1888
+ zpages:  # zpages extension for in-process diagnostics via web interface
+   endpoint: :55679
+
+# Service defines the pipelines and extensions that will be used by the collector.
+service:
+ extensions: [pprof, zpages, health_check]  # List of enabled extensions
+ pipelines:
+   logs:
+     receivers: [otlp]  # Receivers used by this pipeline
+     processors: [batch, resource]  # Processors used by this pipeline
+     exporters: [logging, otlphttp/seq]  # Exporters used by this pipeline
+   traces:
+     receivers: [otlp]
+     processors: [batch, resource]
+     exporters: [logging, otlphttp/jaeger]
+   metrics:
+     receivers: [otlp]
+     processors: [batch]
+     exporters: [logging, prometheus, prometheusremotewrite]

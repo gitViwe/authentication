@@ -13,11 +13,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
     ports:
       - 5056:8080
-    networks:
-      - auth-network
     depends_on:
       postgres:
         condition: service_healthy
+        
+  ##################################
+  # Database
 
   postgres:
     image: postgres:16.3-alpine
@@ -35,12 +36,84 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - auth-network
+  
+  ##################################
+  # OpenTelemetry
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.103.0
+    hostname: otel-collector
+    container_name: otel-collector
+    volumes:
+      - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Prometheus metrics exposed by the collector
+      - 8889:8889 # Prometheus exporter metrics
+      - 13133:13133 # health_check extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP http receiver
+      - 55679:55679 # zpages extension
+    depends_on:
+      - jaeger
+      - seq
+      - grafana
+      - prometheus
+
+  # https://www.jaegertracing.io/docs/next-release/getting-started/#all-in-one
+  jaeger:
+    image: jaegertracing/all-in-one:1.58
+    hostname: jaeger
+    container_name: jaeger
+    volumes:
+      - "./config/jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+      METRICS_STORAGE_TYPE: prometheus
+      PROMETHEUS_SERVER_URL: http://prometheus:9090
+      PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR: ${PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR:-true}
+      PROMETHEUS_QUERY_NAMESPACE: ${PROMETHEUS_QUERY_NAMESPACE:-}
+      PROMETHEUS_QUERY_DURATION_UNIT: ${PROMETHEUS_QUERY_DURATION_UNIT:-}
+      PROMETHEUS_QUERY_NORMALIZE_CALLS: true
+      PROMETHEUS_QUERY_NORMALIZE_DURATION: true
+    ports:
+      - 16686:16686 # jaeger ui
+
+  # https://docs.datalust.co/docs/getting-started-with-docker
+  seq:
+    image: datalust/seq:2024.3
+    hostname: seq
+    container_name: seq
+    restart: on-failure
+    environment:
+      ACCEPT_EULA: Y
+    ports:
+      - 81:80
+
+  # default admin user credentials are admin/admin https://github.com/curityio/grafana/blob/master/README.md
+  grafana:
+    image: grafana/grafana:10.4.4
+    hostname: grafana
+    container_name: grafana
+    volumes:
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.45.6
+    hostname: prometheus
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  ##################################
+  # Volume
 
 volumes:
   postgresqlsystem:
-    
-networks:
-  auth-network:
-    driver: bridge

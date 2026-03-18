@@ -35,3 +35,5 @@ app.MapAccountEndpoint();
 app.ApplyMigrations();
 
 app.Run();
+
+public class AuthenticationApiMarker;
