@@ -1,33 +1,63 @@
-# WebAuthentication
-The technology builds on public/private keys, allowing authentication to happen without sharing a secret between the user &amp; platform. This brings many benefits, such as easier and safer logins and makes phishing attempts extremely hard.
+# Authentication
 
-### Built With
+This repository contains a full-stack authentication system featuring a **.NET 10 Web API** backend.
+The solution is built with scalability in mind, supported by a robust **OpenTelemetry** observability stack.
 
-* [.NET 10](https://dotnet.microsoft.com/en-us/download)
-* [Blazor](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
-* [WebAuthn.Net](https://github.com/dodobrands/WebAuthn.Net/tree/main)
+---
+
+## How to Run All Apps
+
+The quickest way to deploy the entire environment is using **Docker Compose**.
 
 ### Prerequisites
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+* [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (required only for local development/testing).
 
-Things you need to use the software and how to install them.
-* [Visual Studio / Visual Studio Code](https://visualstudio.microsoft.com/)
-* [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-* [Docker](https://www.docker.com/)
+### Execution Steps
+1.  Open your terminal in the root directory of the repository.
+2.  Spin up the infrastructure:
+    ```bash
+    docker-compose up -d --build
+    ```
+3.  **Note:** Wait for the `postgres` health check to pass. The `auth-api` is configured to restart automatically until the database becomes available.
 
-### Installation
+---
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/gitViwe/WebAuthentication.git
-   ```
-2. Navigate to the root folder `WebAuthentication`
+## How to Run Integration Tests
 
-3. Run via Docker
-   ```
-   docker compose up -d
-   ```
+Integration tests are located in `src/Authentication.Test`. These use a specialized `WebApplicationFactory` to simulate a production-like environment for the API.
 
-<!-- USAGE EXAMPLES -->
-## Usage
+1.  Navigate to the test project directory:
+    ```bash
+    cd src/Authentication.Test
+    ```
+2.  Execute the test suite:
+    ```bash
+    dotnet test
+    ```
 
-Go to the [Client endpoint](http://localhost:5291/) to get started.
+> [!IMPORTANT]  
+> Ensure your local environment is running docker as a a PostgreSQL container database will be used instead of an in-memory provider.
+
+---
+
+## Service Map & Endpoints
+
+| Service | Public URL | Description |
+| :--- | :--- | :--- |
+| **Auth API** | `http://localhost:5056` | Backend API |
+| **API Documentation** | `http://localhost:5056/scalar` | Scalar Docs |
+| **Seq** | `http://localhost:81` | Structured Log UI |
+| **Jaeger** | `http://localhost:16686` | Distributed Tracing UI |
+| **Grafana** | `http://localhost:3000/d/KdDACDp4z/asp-net-core?orgId=1` | Metrics Dashboards (Admin: `admin/admin`) |
+| **OTEL Collector** | `http://localhost:4318` | OTLP HTTP Telemetry Ingestion |
+
+---
+
+## 📊 Observability Flow
+
+The entire stack is instrumented with **OpenTelemetry** for deep system insights:
+
+* **Traces:** Sent to **Jaeger** to visualize request flow and identify bottlenecks.
+* **Logs:** Sent to **Seq** for centralized, searchable structured logging.
+* **Metrics:** Scraped by **Prometheus** and visualized through pre-configured **Grafana** dashboards.
