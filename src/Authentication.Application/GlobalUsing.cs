@@ -7,6 +7,7 @@ global using System.Security.Claims;
 global using Authentication.Application.Extension;
 global using Authentication.Application.Feature;
 global using Authentication.Application.Manager;
+global using Authentication.Shared.Constant;
 global using Authentication.Shared.Contract;
 global using gitViwe.Shared;
 global using gitViwe.Shared.ProblemDetail.AspNetCore;

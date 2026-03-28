@@ -82,7 +82,7 @@ internal static partial class HubIdentityUserServiceLoggerExtension
         Message = "Failed to Verify TimeBased One-Time-Pin: {tOtpVerifyRequest} {userId} {HubIdentityUser}")]
     public static partial void FailedToVerifyTwoFactorToken(
         this ILogger logger,
-        [LogProperties] TOTPVerifyRequest tOtpVerifyRequest,
+        [LogProperties] TotpVerifyRequest tOtpVerifyRequest,
         string userId,
         [LogProperties] HubIdentityUser? hubIdentityUser);
 }

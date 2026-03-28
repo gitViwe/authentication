@@ -10,5 +10,5 @@ public interface IUserIdentityManager
     Task<ClaimsPrincipal?> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken);
     Task<bool> UpdateUserAsync(string userId, UpdateUserRequest request);
     Task<bool> UpdateUserAsync(string userId, string profileImageUri, int expirationInSeconds);
-    Task<bool> VerifyTimeBasedOneTimePinLinkAsync(TOTPVerifyRequest request, string userId, CancellationToken cancellation);
+    Task<bool> VerifyTimeBasedOneTimePinLinkAsync(TotpVerifyRequest request, string userId, CancellationToken cancellation);
 }

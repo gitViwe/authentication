@@ -13,7 +13,21 @@ internal sealed class LoginUserCommandHandler(ITokenManager tokenManager, IUserI
 
         if (claimsPrincipal is null)
         {
-            return TypedResponse<TokenResponse>.Fail("Failed to Login User.", StatusCodes.Status401Unauthorized);
+            return TypedResponse<TokenResponse>.Fail(
+                "Failed to Login User.",
+                StatusCodes.Status401Unauthorized);
+        }
+        
+        var requiresTwoFactor = claimsPrincipal.HasClaim(c => 
+            c.Type == "Permission" && 
+            c.Value == HubPermissions.Authentication.VerifiedTotp);
+
+        if (requiresTwoFactor)
+        {
+            // Halt login and return a specific status code for the frontend to catch
+            return TypedResponse<TokenResponse>.Fail(
+                "Two-factor authentication required.", 
+                StatusCodes.Status428PreconditionRequired);
         }
 
         var tokenResponse = await tokenManager.CreateTokenAsync(claimsPrincipal, command.Origin, cancellationToken);

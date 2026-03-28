@@ -1,6 +1,6 @@
 namespace Authentication.Shared.Contract;
 
-public sealed class TOTPVerifyRequest
+public class TotpVerifyRequest
 {
     [Required]
     [MinLength(8)]

@@ -125,7 +125,7 @@ internal sealed class UserIdentityManager(
         return await UpdateUserAsync(existingUser);
     }
 
-    public async Task<bool> VerifyTimeBasedOneTimePinLinkAsync(TOTPVerifyRequest request, string userId, CancellationToken cancellation)
+    public async Task<bool> VerifyTimeBasedOneTimePinLinkAsync(TotpVerifyRequest request, string userId, CancellationToken cancellation)
     {
         var existingUser = await userManager.FindByIdAsync(userId);
  
@@ -166,29 +166,29 @@ internal sealed class UserIdentityManager(
             }
         }
 
-        async Task<IEnumerable<HubIdentityRole>> GetRolesAsync(HubIdentityUser user, CancellationToken cancellationToken)
+        return new ClaimsPrincipal(new ClaimsIdentity(claims));
+
+        async Task<IEnumerable<HubIdentityRole>> GetRolesAsync(HubIdentityUser identityUser, CancellationToken cancellation)
         {
             // force the enumerable to execute rather than joining [cosmos db]
             var userRoleIds = await context.UserRoles
-                                            .AsNoTracking()
-                                            .Where(x => x.UserId == user.Id)
-                                            .Select(x => x.RoleId)
-                                            .ToArrayAsync(cancellationToken);
+                .AsNoTracking()
+                .Where(x => x.UserId == identityUser.Id)
+                .Select(x => x.RoleId)
+                .ToArrayAsync(cancellation);
 
             if (userRoleIds.Length > 0)
             {
                 var roles = await context.Roles
-                                            .AsNoTracking()
-                                            .Where(x => userRoleIds.AsEnumerable().Contains(x.Id))
-                                            .ToArrayAsync(cancellationToken);
+                    .AsNoTracking()
+                    .Where(x => userRoleIds.AsEnumerable().Contains(x.Id))
+                    .ToArrayAsync(cancellation);
 
                 return roles.Length > 0 ? roles : [];
             }
 
             return [];
         }
-
-        return new ClaimsPrincipal(new ClaimsIdentity(claims));
     }
 
     private async Task<bool> UpdateUserAsync(HubIdentityUser user)

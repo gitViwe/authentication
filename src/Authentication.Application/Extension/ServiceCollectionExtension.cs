@@ -7,7 +7,10 @@ internal static class ServiceCollectionExtension
         return services
             .AddScoped<UserDetailQueryHandler>()
             .AddScoped<LoginUserCommandHandler>()
+            .AddScoped<TotpLoginCommandHandler>()
+            .AddScoped<TotpVerifyCommandHandler>()
             .AddScoped<RegisterUserCommandHandler>()
+            .AddScoped<TotpGenerateLinkQueryHandler>()
             .AddScoped<UserDetailUpdateCommandHandler>();
     }
 }

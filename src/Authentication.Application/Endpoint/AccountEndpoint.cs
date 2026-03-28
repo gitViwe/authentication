@@ -54,6 +54,39 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
+        accountGroup.MapGet("2fa/setup", GetTwoFactorSetupAsync)
+            .WithName(nameof(GetTwoFactorSetupAsync))
+            .Produces<TOTPAuthenticatorLinkResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
+            .AddOpenApiOperationTransformer((operation, _, _) =>
+            {
+                operation.Summary = "Get 2FA setup link.";
+                operation.Description = "Generates an authenticator URI for the user to scan into Authy or Google Authenticator.";
+                return Task.CompletedTask;
+            });
+
+        accountGroup.MapPost("2fa/verify", VerifyTwoFactorSetupAsync)
+            .WithName(nameof(VerifyTwoFactorSetupAsync))
+            .DataAnnotationValidation<TotpVerifyRequest>()
+            .Produces(StatusCodes.Status200OK)
+            .AddOpenApiOperationTransformer((operation, _, _) =>
+            {
+                operation.Summary = "Verify 2FA setup.";
+                operation.Description = "Verifies the token from the authenticator app to fully enable 2FA.";
+                return Task.CompletedTask;
+            });
+
+        accountGroup.MapPost("login/2fa", LoginTotpAsync)
+            .AllowAnonymous()
+            .WithName(nameof(LoginTotpAsync))
+            .DataAnnotationValidation<TimeBasedOneTimePinLoginRequest>()
+            .Produces<TokenResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
+            .AddOpenApiOperationTransformer((operation, _, _) =>
+            {
+                operation.Summary = "Login using 2FA.";
+                operation.Description = "Provide an email and the 6-digit TOTP token to get the JSON web token.";
+                return Task.CompletedTask;
+            });
+        
         return app;
     }
     
@@ -116,17 +149,67 @@ public static class AccountEndpoint
         UpdateUserRequest request,
         [FromServices] UserDetailUpdateCommandHandler handler,
         HttpContext httpContext,
-        CancellationToken token = default)
+        CancellationToken cancellation = default)
     {
         var response = await handler.HandleAsync(new UserDetailUpdateCommand()
         {
             UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
             FirstName = request.FirstName,
             LastName = request.LastName,
-        }, token);
+        }, cancellation);
 
         return response.Succeeded
             ? Results.NoContent()
+            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
+    }
+    
+    private static async Task<IResult> GetTwoFactorSetupAsync(
+        [FromServices] TotpGenerateLinkQueryHandler handler,
+        HttpContext httpContext,
+        CancellationToken cancellation = default)
+    {
+        var response = await handler.HandleAsync(new TotpGenerateLinkQuery
+        {
+            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!
+        }, cancellation);
+
+        return response.Succeeded
+            ? Results.Ok(response.Data)
+            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
+    }
+
+    private static async Task<IResult> VerifyTwoFactorSetupAsync(
+        TotpVerifyCommand request,
+        [FromServices] TotpVerifyCommandHandler handler,
+        HttpContext httpContext,
+        CancellationToken cancellation = default)
+    {
+        var response = await handler.HandleAsync(new TotpVerifyCommand
+        {
+            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+            Token = request.Token
+        }, cancellation);
+
+        return response.Succeeded
+            ? Results.Ok(new { message = response.Message })
+            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
+    }
+
+    private static async Task<IResult> LoginTotpAsync(
+        TimeBasedOneTimePinLoginRequest request,
+        [FromServices] TotpLoginCommandHandler handler,
+        HttpContext httpContext,
+        CancellationToken cancellation = default)
+    {
+        var response = await handler.HandleAsync(new TotpLoginCommand
+        {
+            Origin = httpContext.Request.Headers.Origin!,
+            Email = request.Email,
+            Token = request.Token
+        }, cancellation);
+
+        return response.Succeeded
+            ? Results.Ok(response.Data)
             : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
     }
 }
