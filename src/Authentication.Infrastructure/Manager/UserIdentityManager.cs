@@ -160,8 +160,9 @@ internal sealed class UserIdentityManager(
                 claims.Add(new Claim(ClaimTypes.Role, role.Name));
 
                 // get all claims associated with that role
-                var roleClaims = role.RoleClaims.Select(x => new Claim(x.ClaimType!, x.ClaimValue!));
-
+                var roleClaims = role.RoleClaims
+                    .Where(x => x.ClaimType is not null && x.ClaimValue is not null)
+                    .Select(x => new Claim(x.ClaimType!, x.ClaimValue!));
                 claims.AddRange(roleClaims);
             }
         }
