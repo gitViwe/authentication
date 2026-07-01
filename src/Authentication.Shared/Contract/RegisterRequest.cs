@@ -18,6 +18,6 @@ public class RegisterRequest
     [Compare(nameof(Password), ErrorMessage = "The password and confirmation password do not match.")]
     public string PasswordConfirmation { get; init; } = string.Empty;
     
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
 }

@@ -1,3 +1,5 @@
+using Authentication.Infrastructure.Configuration.Option;
+
 namespace Authentication.Infrastructure.Handler;
 
 internal static class ApiKeyAuthenticationDefault

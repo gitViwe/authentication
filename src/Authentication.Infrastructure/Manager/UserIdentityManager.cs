@@ -139,6 +139,44 @@ internal sealed class UserIdentityManager(
         return true;
     }
     
+    
+    public async Task<IEnumerable<string>> GetAvailableLoginFlowsAsync(string email, CancellationToken cancellation)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is null)
+        {
+            // Safer anti-enumeration behaviour:
+            // Always allow password attempt as the generic fallback.
+            return [HubLoginFlows.Password];
+        }
+
+        var flows = new List<string>([HubLoginFlows.Password]);
+
+        var claims = await userManager.GetClaimsAsync(user);
+
+        var hasVerifiedTotp = claims.Any(x =>
+            x.Type.Equals("Permission") &&
+            x.Value.Equals(HubPermissions.Authentication.VerifiedTotp));
+
+        if (hasVerifiedTotp)
+        {
+            flows.Add(HubLoginFlows.Totp);
+        }
+
+        var hasPasskey = await context.HubPasskeyCredentials
+            .AsNoTracking()
+            .AnyAsync(x => x.UserId == user.Id, cancellation);
+
+        if (hasPasskey)
+        {
+            flows.Add(HubLoginFlows.Passkey);
+        }
+
+        return flows;
+    }
+
+    
     private async Task<ClaimsPrincipal> CreateClaimsPrincipalAsync(HubIdentityUser user, CancellationToken cancellationToken)
     {
         List<Claim> claims =

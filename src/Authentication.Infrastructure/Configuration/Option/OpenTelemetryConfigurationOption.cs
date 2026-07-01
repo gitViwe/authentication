@@ -1,4 +1,4 @@
-namespace Authentication.Infrastructure.Option;
+namespace Authentication.Infrastructure.Configuration.Option;
 
 internal sealed class OpenTelemetryConfigurationOption
 {
@@ -17,4 +17,8 @@ internal sealed class OpenTelemetryConfigurationOption
     public string Endpoint { get; init; } = string.Empty;
     
     public string Headers { get; init; } = string.Empty;
+    
+    [Required]
+    [MinimumItems(1)]
+    public IEnumerable<string> MetricMeters { get; init; } = [];
 }

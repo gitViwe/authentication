@@ -1,7 +1,6 @@
+using Authentication.Infrastructure.Configuration.Option;
 using Authentication.Infrastructure.Handler;
 using Authentication.Infrastructure.Manager;
-using Authentication.Shared.Compliance;
-using Microsoft.Extensions.Compliance.Classification;
 
 namespace Authentication.Infrastructure.Extension;
 
@@ -47,6 +46,11 @@ internal static class ServiceCollectionExtension
             .ValidateDataAnnotations()
             .ValidateOnStart();
         
+        services.AddOptionsWithValidateOnStart<PassKeyAuthenticationOption>()
+            .BindConfiguration(PassKeyAuthenticationOption.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
         services.AddOptionsWithValidateOnStart<TokenValidationParameterOption>()
             .BindConfiguration(TokenValidationParameterOption.SectionName)
             .ValidateDataAnnotations()
@@ -55,9 +59,7 @@ internal static class ServiceCollectionExtension
         return services;
     }
     
-    internal static IServiceCollection RegisterAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    internal static IServiceCollection RegisterAuthentication(this IServiceCollection services)
     {
         // configures authentication using JWT and API keys
         services.AddAuthentication(options =>
@@ -154,9 +156,7 @@ internal static class ServiceCollectionExtension
         return services;
     }
     
-    internal static IServiceCollection RegisterCors(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    internal static IServiceCollection RegisterCors(this IServiceCollection services)
     {
         var corsPolicyOption = services
             .BuildServiceProvider()
@@ -178,9 +178,7 @@ internal static class ServiceCollectionExtension
         return services;
     }
     
-    internal static IServiceCollection RegisterOpenTelemetry(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    internal static IServiceCollection RegisterOpenTelemetry(this IServiceCollection services)
     {
         var config = services
             .BuildServiceProvider()
@@ -215,7 +213,7 @@ internal static class ServiceCollectionExtension
             })
             .WithMetrics(builder =>
             {
-                builder.AddMeter("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel")
+                builder.AddMeter(config.Value.MetricMeters.ToArray())
                        .AddOtlpExporter(option =>
                        {
                            option.Endpoint = new Uri(config.Value.Endpoint);
@@ -236,29 +234,46 @@ internal static class ServiceCollectionExtension
     
     internal static IServiceCollection RegisterManagerImplementation(this IServiceCollection services)
     {
+        var passKeyOptions = services
+            .BuildServiceProvider()
+            .GetRequiredService<IOptions<PassKeyAuthenticationOption>>();
+        
+        services.AddFido2(options =>
+        {
+            options.ServerDomain = passKeyOptions.Value.ServerDomain;
+            options.ServerName = passKeyOptions.Value.ServerName;
+            options.Origins = passKeyOptions.Value.AllowedOrigins.ToHashSet();
+        });
+        
         return services
+            .AddMemoryCache()
             .AddScoped<ITokenManager, TokenManager>()
+            .AddScoped<IPasskeyManager, PasskeyManager>()
             .AddScoped<IUserIdentityManager, UserIdentityManager>()
             .AddGitViweTimeBasedOneTimePassword()
             .AddGitViweJsonWebToken();
     }
 
-    internal static IServiceCollection RegisterDatabase(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    internal static IServiceCollection RegisterDatabase(this IServiceCollection services)
     {
         var configOptions = services
             .BuildServiceProvider()
             .GetRequiredService<IOptions<DatabaseConfigurationOption>>();
 
-        return services.AddDbContext<HubDbContext>(options =>
+        return configOptions.Value.DatabaseProviderType switch
         {
-            options.UseNpgsql(configOptions.Value.ConnectionString, optionsBuilder =>
+            DatabaseProviderType.PostgreSql => services.AddDbContext<HubDbContext>(options =>
             {
-                optionsBuilder.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
-                optionsBuilder.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
-            });
-        });
+                options.UseNpgsql(configOptions.Value.DatabaseProviderConfiguration.ConnectionString, optionsBuilder =>
+                {
+                    optionsBuilder.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
+                    optionsBuilder.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorCodesToAdd: null);
+                });
+            }),
+            
+            _ => throw new NotImplementedException($"Database provider type {configOptions.Value.DatabaseProviderType} not implemented.")
+        };
     }
     
     internal static IServiceCollection RegisterIdentity(this IServiceCollection services)

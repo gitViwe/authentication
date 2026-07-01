@@ -7,13 +7,16 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddInfrastructureConfiguration();
+
 builder.Services
     .AddOpenApi(options =>
     {
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     })
     .RegisterApplicationLayer()
-    .RegisterInfrastructureLayer(builder.Configuration);
+    .RegisterInfrastructureLayer();
 
 var app = builder.Build();
 
@@ -22,8 +25,7 @@ app
     .UseHubExceptionHandler();
 
 app.MapOpenApi().AllowAnonymous();
-app.MapScalarApiReference()
-    .AllowAnonymous();
+app.MapScalarApiReference().AllowAnonymous();
 
 app
     .UseHttpsRedirection()

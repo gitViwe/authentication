@@ -7,26 +7,28 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Fido2" Version="4.0.1" />
+      <PackageReference Include="Fido2.AspNet" Version="4.0.1" />
       <PackageReference Include="gitViwe.Shared" Version="4.0.0-alpha.2" />
       <PackageReference Include="gitViwe.Shared.JsonWebToken" Version="4.0.0-alpha.2" />
       <PackageReference Include="gitViwe.Shared.ProblemDetail.AspNetCore" Version="4.0.0-alpha.1" />
       <PackageReference Include="gitViwe.Shared.TimeBasedOneTimePassword" Version="4.0.0-alpha.2" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
-      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.5" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.5" />
-      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.5" />
-      <PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="10.4.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.7" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.7" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.7" />
+      <PackageReference Include="Microsoft.Extensions.Telemetry.Abstractions" Version="10.5.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
-      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.1" />
-      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.1" />
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.1" />
+      <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
       <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.15.0-beta.1" />
-      <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,6 +38,41 @@
 
     <ItemGroup>
       <Folder Include="Migrations\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Configuration\apikey-authentication.json" />
+      <Content Include="Configuration\apikey-authentication.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\cors-policy.json" />
+      <Content Include="Configuration\cors-policy.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\database-configuration.json" />
+      <Content Include="Configuration\database-configuration.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\json-web-token.json" />
+      <Content Include="Configuration\json-web-token.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\open-telemetry.json" />
+      <Content Include="Configuration\open-telemetry.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\pass-key-configuration.json" />
+      <Content Include="Configuration\pass-key-configuration.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\time-based-one-time-password.json" />
+      <Content Include="Configuration\time-based-one-time-password.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Configuration\token-validation-parameter.json" />
+      <Content Include="Configuration\token-validation-parameter.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

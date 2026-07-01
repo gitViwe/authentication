@@ -20,4 +20,5 @@ public sealed class HubDbContext : IdentityDbContext<HubIdentityUser, HubIdentit
     }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<HubPasskeyCredential> HubPasskeyCredentials { get; set; }
 }

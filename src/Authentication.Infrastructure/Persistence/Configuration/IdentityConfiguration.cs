@@ -6,7 +6,8 @@
         IEntityTypeConfiguration<IdentityUserToken<Guid>>,
         IEntityTypeConfiguration<HubIdentityRole>,
         IEntityTypeConfiguration<HubIdentityUser>,
-        IEntityTypeConfiguration<RefreshToken>
+        IEntityTypeConfiguration<RefreshToken>,
+        IEntityTypeConfiguration<HubPasskeyCredential>
     {
         public void Configure(EntityTypeBuilder<IdentityUserLogin<Guid>> builder)
         {
@@ -57,6 +58,19 @@
                 .HasMaxLength(500);
             builder.Property(entity => entity.JwtId)
                 .HasMaxLength(128);
+        }
+
+        public void Configure(EntityTypeBuilder<HubPasskeyCredential> builder)
+        {
+            builder.HasKey(entity => entity.CredentialId);
+            
+            builder.HasOne(entity => entity.User)
+                .WithMany(entity => entity.HubPasskeyCredentials)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            builder.Property(entity => entity.AttestationFormat)
+                .HasMaxLength(500);
         }
     }
 }

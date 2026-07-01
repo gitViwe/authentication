@@ -1,4 +1,4 @@
-namespace Authentication.Infrastructure.Option;
+namespace Authentication.Infrastructure.Configuration.Option;
 
 internal sealed class ApiKeyAuthenticationOption: AuthenticationSchemeOptions
 {

@@ -1,5 +1,3 @@
-using gitViwe.Shared.JsonWebToken.Option;
-
 namespace Authentication.Infrastructure.Manager;
 
 internal sealed class TokenManager(

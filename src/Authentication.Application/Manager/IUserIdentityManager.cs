@@ -11,4 +11,5 @@ public interface IUserIdentityManager
     Task<bool> UpdateUserAsync(string userId, UpdateUserRequest request);
     Task<bool> UpdateUserAsync(string userId, string profileImageUri, int expirationInSeconds);
     Task<bool> VerifyTimeBasedOneTimePinLinkAsync(TotpVerifyRequest request, string userId, CancellationToken cancellation);
+    Task<IEnumerable<string>> GetAvailableLoginFlowsAsync(string email, CancellationToken cancellation);
 }

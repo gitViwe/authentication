@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http.Features;
-
-namespace Authentication.Infrastructure.Extension;
+﻿namespace Authentication.Infrastructure.Extension;
 
 public static class ApplicationBuilderExtension
 {

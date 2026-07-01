@@ -12,4 +12,5 @@ public sealed class HubIdentityUser : IdentityUser<Guid>
     public ICollection<IdentityUserClaim<Guid>> Claims { get; init; } = [];
     public ICollection<IdentityUserLogin<Guid>> Logins { get; init; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; init; } = [];
+    public ICollection<HubPasskeyCredential> HubPasskeyCredentials { get; init; } = [];
 }

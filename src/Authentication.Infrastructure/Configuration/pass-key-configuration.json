@@ -1,0 +1,10 @@
+{
+  "PassKeyAuthenticationOption" : {
+    "ServerDomain": "auth-api",
+    "ServerName": "Auth API",
+    "AllowedOrigins": [
+      "http://localhost:5109",
+      "http://localhost:5056"
+    ]
+  }
+}

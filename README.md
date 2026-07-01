@@ -61,3 +61,14 @@ The entire stack is instrumented with **OpenTelemetry** for deep system insights
 * **Traces:** Sent to **Jaeger** to visualize request flow and identify bottlenecks.
 * **Logs:** Sent to **Seq** for centralized, searchable structured logging.
 * **Metrics:** Scraped by **Prometheus** and visualized through pre-configured **Grafana** dashboards.
+
+## Development scripts
+
+Entity framework migrations
+```bash
+dotnet ef migrations add <migration-name> --project Authentication.Infrastructure --startup-project Authentication
+```
+Combine files tracked by Git
+```bash
+git ls-files | while read -r file; do echo "--- $file ---"; cat "$file"; echo -e "\n"; done > combined_files.txt
+```

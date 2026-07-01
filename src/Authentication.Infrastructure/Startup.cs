@@ -2,17 +2,15 @@ namespace Authentication.Infrastructure;
 
 public static class Startup
 {
-    public static IServiceCollection RegisterInfrastructureLayer(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection RegisterInfrastructureLayer(this IServiceCollection services)
     {
         return services
             .RegisterOptions()
-            .RegisterAuthentication(configuration)
-            .RegisterCors(configuration)
-            .RegisterOpenTelemetry(configuration)
+            .RegisterAuthentication()
+            .RegisterCors()
+            .RegisterOpenTelemetry()
             .RegisterManagerImplementation()
-            .RegisterDatabase(configuration)
+            .RegisterDatabase()
             .RegisterIdentity()
             .RegisterLoggingRedaction();
     }

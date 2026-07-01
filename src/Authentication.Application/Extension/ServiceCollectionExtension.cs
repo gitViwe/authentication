@@ -8,9 +8,14 @@ internal static class ServiceCollectionExtension
             .AddScoped<UserDetailQueryHandler>()
             .AddScoped<LoginUserCommandHandler>()
             .AddScoped<TotpLoginCommandHandler>()
+            .AddScoped<LoginOptionsQueryHandler>()
             .AddScoped<TotpVerifyCommandHandler>()
             .AddScoped<RegisterUserCommandHandler>()
             .AddScoped<TotpGenerateLinkQueryHandler>()
-            .AddScoped<UserDetailUpdateCommandHandler>();
+            .AddScoped<UserDetailUpdateCommandHandler>()
+            .AddScoped<PasskeyRegisterOptionsQueryHandler>()
+            .AddScoped<PasskeyAssertionOptionsQueryHandler>()
+            .AddScoped<PasskeyVerifyAssertionCommandHandler>()
+            .AddScoped<PasskeyRegisterCredentialCommandHandler>();
     }
 }
