@@ -4,7 +4,7 @@ services:
   
   auth-api:
     container_name: auth-api
-    image: hubviwe/thebase.auth.api:${AUTH__IMAGE_TAG:-latest}
+    image: ghcr.io/viwenkepu/authentication:latest
     hostname: auth-api
     restart: on-failure
     build:
