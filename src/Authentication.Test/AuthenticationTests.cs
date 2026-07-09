@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Authentication.Shared.Constant;
 using Authentication.Shared.Contract;
 using Authentication.Test.Configuration;
 using gitViwe.Shared;
@@ -50,6 +52,83 @@ public class AuthenticationTests(BaseIntegrationFixture integrationFixture) : Ba
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Unauthorized, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task GetLoginOptions_ReturnsAvailableFlows_ForRegisteredUser()
+    {
+        // Arrange
+        var (loginRequest, _, _) = await PerformLoginWithRegisterFallback(IntegrationFixture.AuthenticationClient);
+
+        // Act
+        var httpResponse = await IntegrationFixture.AuthenticationClient
+            .GetAsync($"account/login/{Uri.EscapeDataString(loginRequest.Email)}");
+
+        // Assert
+        Assert.NotNull(httpResponse);
+        Assert.True(httpResponse.IsSuccessStatusCode,
+            $"Expected 2xx but got {(int)httpResponse.StatusCode} ({httpResponse.StatusCode}).");
+
+        var result = await httpResponse.Content.ReadFromJsonAsync<LoginOptionsResponse>();
+
+        Assert.NotNull(result);
+        Assert.NotNull(result);
+        Assert.NotNull(result.AvailableFlows);
+
+        Assert.NotEmpty(result.AvailableFlows);
+        Assert.Contains(HubLoginFlows.Password, result.AvailableFlows);
+
+        // Sanity: no unknown/empty flow entries leaked through.
+        Assert.All(result.AvailableFlows, flow => Assert.False(string.IsNullOrWhiteSpace(flow)));
+    }
+    
+    [Fact]
+public async Task UpdateUserDetail_ThenGetDetail_ReturnsUpdatedValues()
+{
+    // Arrange - guarantee a user + a valid access token (same helper used by other tests)
+    var (loginRequest, registerRequest, loginResult) =
+        await PerformLoginWithRegisterFallback(IntegrationFixture.AuthenticationClient);
+
+    var loginResponse = await loginResult.ToResponseAsync<TokenResponse>();
+    Assert.NotNull(loginResponse);
+    Assert.False(string.IsNullOrWhiteSpace(loginResponse.Token),
+        "Expected a bearer token from PerformLoginWithRegisterFallback.");
+
+    // Authenticated client (bearer token from the login/register step)
+    IntegrationFixture.AuthenticationClient.DefaultRequestHeaders.Authorization =
+        new AuthenticationHeaderValue("Bearer", loginResponse.Token);
+
+    // New details to push
+    var updateRequest = new UpdateUserRequest
+    {
+        FirstName = $"First-{Generator.RandomString(CharacterCombination.Alphabet, 6)}",
+        LastName  = $"Last-{Generator.RandomString(CharacterCombination.Alphabet, 6)}",
+    };
+
+    // Act 1 - PUT account/detail  (accountGroup.MapPut("detail", User.UpdateDetailsAsync))
+    var updateResponse = await IntegrationFixture.AuthenticationClient
+        .PutAsJsonAsync("account/detail", updateRequest);
+
+    // Assert - 204 No Content, per .Produces(StatusCodes.Status204NoContent)
+    Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
+
+    // Act 2 - GET account/detail  (accountGroup.MapGet("detail", User.DetailAsync))
+    var detailResponse = await IntegrationFixture.AuthenticationClient
+        .GetAsync("account/detail");
+
+    Assert.True(detailResponse.IsSuccessStatusCode,
+        $"Expected 2xx but got {(int)detailResponse.StatusCode} ({detailResponse.StatusCode}).");
+
+    // Assert - typed payload matches what we just PUT
+    var detail = await detailResponse.Content.ReadFromJsonAsync<UserDetailResponse>();
+
+    Assert.NotNull(detail);
+    Assert.Equal(updateRequest.FirstName, detail!.FirstName);
+    Assert.Equal(updateRequest.LastName,  detail.LastName);
+
+    // Sanity: identity-bound fields must remain the ones we logged in with
+    Assert.Equal(loginRequest.Email, detail.Email);
+    Assert.Equal(registerRequest.UserName, detail.Username);
+}
     
     private static async Task<(RegisterRequest, HttpResponseMessage)> PerformRegister(HttpClient authClient, Action<RegisterRequest>? requestTransform = null)
     {

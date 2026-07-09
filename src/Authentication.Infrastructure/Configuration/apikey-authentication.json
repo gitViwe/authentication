@@ -1,7 +1,0 @@
-{
-  "ApiKeyAuthenticationOption": {
-    "ApiKeyHeaderName": "x-api-key",
-    "ApiKeyHeaderValue": "eAjc4gszrYgIfURiqEwT7H1lbcOTo4DL",
-    "OriginServiceHeaderName": "x-origin-service-name"
-  }
-}

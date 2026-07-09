@@ -1,4 +1,4 @@
-namespace Authentication.Infrastructure.Configuration.Option;
+namespace Authentication.Infrastructure.Option;
 
 internal sealed class PassKeyAuthenticationOption
 {

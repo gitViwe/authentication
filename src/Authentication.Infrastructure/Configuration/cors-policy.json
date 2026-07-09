@@ -1,5 +1,0 @@
-{
-  "CorsPolicyOption": {
-    "AllowedCorsOrigins": [ "http://localhost:5109" ]
-  }
-}

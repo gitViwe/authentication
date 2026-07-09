@@ -42,7 +42,7 @@ internal sealed class BearerSecuritySchemeTransformer(
             };
 
             // Apply the requirement to all operations
-            foreach (var operation in document.Paths.Values.SelectMany(p => p.Operations))
+            foreach (var operation in document.Paths.Values.SelectMany(p => p.Operations ?? []))
             {
                 operation.Value.Security ??= [];
                 operation.Value.Security.Add(securityRequirement);

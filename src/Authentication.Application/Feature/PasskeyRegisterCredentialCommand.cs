@@ -3,6 +3,7 @@ namespace Authentication.Application.Feature;
 public sealed class PasskeyRegisterCredentialCommand
 {
     public required string UserId { get; init; }
+    public string? FriendlyName { get; init; }
     public required AuthenticatorAttestationRawResponse AttestationRawResponse { get; init; }
 }
 
@@ -25,6 +26,7 @@ internal sealed partial class PasskeyRegisterCredentialCommandHandler(
         
         var isRegistrationSuccess = await passkeyManager.RegisterCredentialAsync(
             command.UserId,
+            command.FriendlyName,
             originalOptions,
             command.AttestationRawResponse,
             cancellationToken);

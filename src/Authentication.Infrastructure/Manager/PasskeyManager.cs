@@ -45,6 +45,7 @@ internal sealed partial class PasskeyManager(
 
     public async Task<bool> RegisterCredentialAsync(
         string userId,
+        string? friendlyName,
         CredentialCreateOptions originalOptions,
         AuthenticatorAttestationRawResponse response,
         CancellationToken cancellationToken)
@@ -75,6 +76,7 @@ internal sealed partial class PasskeyManager(
             UserHandle = credential.User.Id,
             SignCount = credential.SignCount,
             RegDate = DateTimeOffset.UtcNow,
+            FriendlyName = friendlyName,
             AaGuid = credential.AaGuid,
             UserId = user.Id
         };

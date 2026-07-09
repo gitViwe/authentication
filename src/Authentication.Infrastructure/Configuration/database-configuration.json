@@ -1,8 +1,0 @@
-{
-  "DatabaseConfigurationOption": {
-    "DatabaseProviderType": 1,
-    "DatabaseProviderConfiguration": {
-      "ConnectionString": "server=postgres;port=5432;user id=user;password=pass;database=auth-db"
-    }
-  }
-}
