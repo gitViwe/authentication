@@ -71,6 +71,8 @@
             
             builder.Property(entity => entity.AttestationFormat)
                 .HasMaxLength(500);
+            builder.Property(entity => entity.FriendlyName)
+                .HasMaxLength(64);
         }
     }
 }

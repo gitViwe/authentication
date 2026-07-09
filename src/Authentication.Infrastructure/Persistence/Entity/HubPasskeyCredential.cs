@@ -11,9 +11,10 @@ public sealed class HubPasskeyCredential
     public Guid AaGuid { get; init; }
     public byte[]? AttestationObject { get; init; }
     public byte[]? AttestationClientDataJson { get; init; }
-    
+    public string? FriendlyName { get; set; }
+    public DateTimeOffset? LastUsedAt { get; set; }
 
-    public Guid UserId { get; init; }
+    public required Guid UserId { get; init; }
     public HubIdentityUser User { get; init; }
 
     public PublicKeyCredentialDescriptor Descriptor => new(PublicKeyCredentialType.PublicKey, CredentialId, null);

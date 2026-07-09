@@ -1,3 +1,4 @@
+using gitViwe.Shared;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -7,8 +8,13 @@ public class AuthenticationWebApplicationFactory(string postgresConnectionString
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var testSecret = Generator.RandomString(CharacterCombination.Alphabet, 32);
+        
         Environment.SetEnvironmentVariable("ASPNETCORE_URLS", "http://localhost:5056");
-        Environment.SetEnvironmentVariable("DatabaseConfigurationOption__ConnectionString", postgresConnectionString);
+        Environment.SetEnvironmentVariable("DatabaseConfigurationOption__DatabaseProviderConfiguration__ConnectionString", postgresConnectionString);
+        Environment.SetEnvironmentVariable("JsonWebTokenOption__Secret", testSecret);
+        Environment.SetEnvironmentVariable("TokenValidationParameterOption__Secret", testSecret);
+        Environment.SetEnvironmentVariable("ApiKeyAuthenticationOption__ApiKeyHeaderValue", testSecret);
         builder.UseEnvironment("Development");
     }
     

@@ -40,5 +40,5 @@ public sealed class BaseIntegrationFixtureCollection : ICollectionFixture<BaseIn
 [Collection(nameof(BaseIntegrationFixtureCollection))]
 public class BaseIntegrationTest(BaseIntegrationFixture integrationFixture)
 {
-    public BaseIntegrationFixture IntegrationFixture { get; } = integrationFixture;
+    protected BaseIntegrationFixture IntegrationFixture { get; } = integrationFixture;
 }

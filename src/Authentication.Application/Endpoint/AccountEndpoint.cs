@@ -1,3 +1,5 @@
+using Authentication.Application.Endpoint.Account;
+
 namespace Authentication.Application.Endpoint;
 
 public static class AccountEndpoint
@@ -44,8 +46,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapGet("detail", GetUserDetailAsync)
-            .WithName(nameof(GetUserDetailAsync))
+        accountGroup.MapGet("detail", User.DetailAsync)
+            .WithName(nameof(User.DetailAsync))
             .Produces<UserDetailResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
             {
@@ -54,8 +56,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapPut("detail", UpdateDetailsAsync)
-            .WithName(nameof(UpdateDetailsAsync))
+        accountGroup.MapPut("detail", User.UpdateDetailsAsync)
+            .WithName(nameof(User.UpdateDetailsAsync))
             .DataAnnotationValidation<UpdateUserRequest>()
             .Produces(StatusCodes.Status204NoContent)
             .AddOpenApiOperationTransformer((operation, _, _) =>
@@ -65,8 +67,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapGet("2fa/setup", GetTwoFactorSetupAsync)
-            .WithName(nameof(GetTwoFactorSetupAsync))
+        accountGroup.MapGet("2fa/setup", TwoFactorAuthentication.SetupAsync)
+            .WithName(nameof(TwoFactorAuthentication.SetupAsync))
             .Produces<TOTPAuthenticatorLinkResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
             {
@@ -75,8 +77,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
 
-        accountGroup.MapPost("2fa/verify", VerifyTwoFactorSetupAsync)
-            .WithName(nameof(VerifyTwoFactorSetupAsync))
+        accountGroup.MapPost("2fa/verify", TwoFactorAuthentication.VerifyAsync)
+            .WithName(nameof(TwoFactorAuthentication.VerifyAsync))
             .DataAnnotationValidation<TotpVerifyRequest>()
             .Produces(StatusCodes.Status200OK)
             .AddOpenApiOperationTransformer((operation, _, _) =>
@@ -86,9 +88,9 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
 
-        accountGroup.MapPost("2fa/login", LoginTotpAsync)
+        accountGroup.MapPost("2fa/login", TwoFactorAuthentication.TwoFactorLoginAsync)
             .AllowAnonymous()
-            .WithName(nameof(LoginTotpAsync))
+            .WithName(nameof(TwoFactorAuthentication.TwoFactorLoginAsync))
             .DataAnnotationValidation<TimeBasedOneTimePinLoginRequest>()
             .Produces<TokenResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
@@ -98,8 +100,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapGet("passkey/register", GetPasskeyRegisterOptionsAsync)
-            .WithName(nameof(GetPasskeyRegisterOptionsAsync))
+        accountGroup.MapGet("passkey/register", PassKey.RegisterOptionsAsync)
+            .WithName(nameof(PassKey.RegisterOptionsAsync))
             .Produces<CredentialCreateOptions>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
             {
@@ -108,8 +110,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapPost("passkey/register", PasskeyRegisterCredentialAsync)
-            .WithName(nameof(PasskeyRegisterCredentialAsync))
+        accountGroup.MapPost("passkey/register/{friendlyName?}", PassKey.RegisterCredentialAsync)
+            .WithName(nameof(PassKey.RegisterCredentialAsync))
             .DataAnnotationValidation<AuthenticatorAttestationRawResponse>()
             .Produces(StatusCodes.Status204NoContent)
             .AddOpenApiOperationTransformer((operation, _, _) =>
@@ -119,8 +121,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapGet("passkey/login/{email}", GetPasskeyAssertionOptionsAsync)
-            .WithName(nameof(GetPasskeyAssertionOptionsAsync))
+        accountGroup.MapGet("passkey/login/{email}", PassKey.AssertionOptionsAsync)
+            .WithName(nameof(PassKey.AssertionOptionsAsync))
             .Produces<AssertionOptions>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
             {
@@ -129,8 +131,8 @@ public static class AccountEndpoint
                 return Task.CompletedTask;
             });
         
-        accountGroup.MapPost("passkey/login/{email}", PasskeyVerifyAssertionAsync)
-            .WithName(nameof(PasskeyVerifyAssertionAsync))
+        accountGroup.MapPost("passkey/login/{email}", PassKey.VerifyAssertionAsync)
+            .WithName(nameof(PassKey.VerifyAssertionAsync))
             .DataAnnotationValidation<AuthenticatorAssertionRawResponse>()
             .Produces<TokenResponse>(StatusCodes.Status200OK, MediaTypeNames.Application.Json)
             .AddOpenApiOperationTransformer((operation, _, _) =>
@@ -176,156 +178,6 @@ public static class AccountEndpoint
             Origin = httpContext.Request.Headers.Origin!,
             Email = request.Email,
             Password = request.Password,
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> GetUserDetailAsync(
-        [FromServices] UserDetailQueryHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new UserDetailQuery()
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> UpdateDetailsAsync(
-        UpdateUserRequest request,
-        [FromServices] UserDetailUpdateCommandHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new UserDetailUpdateCommand()
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.NoContent()
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> GetTwoFactorSetupAsync(
-        [FromServices] TotpGenerateLinkQueryHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new TotpGenerateLinkQuery
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-
-    private static async Task<IResult> VerifyTwoFactorSetupAsync(
-        TotpVerifyCommand request,
-        [FromServices] TotpVerifyCommandHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new TotpVerifyCommand
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-            Token = request.Token
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(new { message = response.Message })
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-
-    private static async Task<IResult> LoginTotpAsync(
-        TimeBasedOneTimePinLoginRequest request,
-        [FromServices] TotpLoginCommandHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new TotpLoginCommand
-        {
-            Origin = httpContext.Request.Headers.Origin!,
-            Email = request.Email,
-            Token = request.Token
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> GetPasskeyRegisterOptionsAsync(
-        [FromServices] PasskeyRegisterOptionsQueryHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new PasskeyRegisterOptionsQuery
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> PasskeyRegisterCredentialAsync(
-        AuthenticatorAttestationRawResponse attestationRawResponse,
-        [FromServices] PasskeyRegisterCredentialCommandHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new PasskeyRegisterCredentialCommand
-        {
-            UserId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-            AttestationRawResponse = attestationRawResponse
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.NoContent()
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> GetPasskeyAssertionOptionsAsync(
-        [FromRoute] string email,
-        [FromServices] PasskeyAssertionOptionsQueryHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new PasskeyAssertionOptionsQuery
-        {
-            Email = email,
-        }, cancellation);
-
-        return response.Succeeded
-            ? Results.Ok(response.Data)
-            : ProblemDetailFactory.CreateProblemResult(httpContext, response.StatusCode, response.Message);
-    }
-    
-    private static async Task<IResult> PasskeyVerifyAssertionAsync(
-        [FromRoute] string email,
-        [FromBody] AuthenticatorAssertionRawResponse assertionRawResponse,
-        [FromServices] PasskeyVerifyAssertionCommandHandler handler,
-        HttpContext httpContext,
-        CancellationToken cancellation = default)
-    {
-        var response = await handler.HandleAsync(new PasskeyVerifyAssertionCommand
-        {
-            Email = email,
-            Origin = httpContext.Request.Headers.Origin!,
-            AssertionRawResponse = assertionRawResponse
         }, cancellation);
 
         return response.Succeeded

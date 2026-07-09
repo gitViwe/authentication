@@ -1,4 +1,4 @@
-using Authentication.Infrastructure.Configuration.Option;
+using Authentication.Infrastructure.Option;
 
 namespace Authentication.Infrastructure.Handler;
 

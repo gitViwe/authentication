@@ -7,9 +7,6 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-    .AddInfrastructureConfiguration();
-
 builder.Services
     .AddOpenApi(options =>
     {
