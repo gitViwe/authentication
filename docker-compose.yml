@@ -26,8 +26,7 @@ services:
       # API key
       ApiKeyAuthenticationOption__ApiKeyHeaderValue: ${AUTH__API_KEY}
       # Database
-      DatabaseConfigurationOption__DatabaseProviderConfiguration__ConnectionString: >-
-        server=postgres;port=5432;user id=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=${POSTGRES_DB}
+      DatabaseConfigurationOption__DatabaseProviderConfiguration__ConnectionString: server=postgres;port=5432;user id=${POSTGRES_USER};password=${POSTGRES_PASSWORD};database=${POSTGRES_DB}
       # CORS
       CorsPolicyOption__AllowedCorsOrigins__0: http://localhost:5109
       # OTel

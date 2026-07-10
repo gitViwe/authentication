@@ -1,0 +1,32 @@
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B451A849F9DB45E4AC2A78320815AF41 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_535616A0E01E4BA196D1B2CDC9686624 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FA7A227522BC443CA3EE7295EFCB28B1 }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'gitviwe-authentication-01'
+          slot-name: 'Production'
+          images: 'ghcr.io/gitviwe/authentication:${{ github.sha }}'
+          
