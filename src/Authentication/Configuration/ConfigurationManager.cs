@@ -17,7 +17,7 @@ internal static class ConfigurationManager
             {
                 options.Connect(endpoint, new DefaultAzureCredential())
                     .UseFeatureFlags()
-                    .Select(KeyFilter.Any)
+                    .Select(KeyFilter.Any, "authentication")
                     .ConfigureRefresh(config =>
                     {
                         config.Register(KeyFilter.Any, true)
