@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace Authentication.Configuration;
@@ -10,21 +11,21 @@ internal static class ConfigurationManager
     {
         var connectionString = Environment.GetEnvironmentVariable(AppConfigKey);
 
-        if (string.IsNullOrWhiteSpace(connectionString))
+        if (Uri.TryCreate(connectionString, UriKind.RelativeOrAbsolute, out var endpoint))
         {
-            return builder;
+            return builder.AddAzureAppConfiguration(options =>
+            {
+                options.Connect(endpoint, new DefaultAzureCredential())
+                    .UseFeatureFlags()
+                    .Select(KeyFilter.Any)
+                    .ConfigureRefresh(config =>
+                    {
+                        config.Register(KeyFilter.Any, true)
+                            .SetRefreshInterval(TimeSpan.FromMinutes(5));
+                    });
+            });
         }
         
-        return builder.AddAzureAppConfiguration(options =>
-        {
-            options.Connect(connectionString)
-                .UseFeatureFlags()
-                .Select(KeyFilter.Any)
-                .ConfigureRefresh(config =>
-                {
-                    config.Register(KeyFilter.Any, true)
-                        .SetRefreshInterval(TimeSpan.FromMinutes(5));
-                });
-        });
+        return builder;
     }
 }
