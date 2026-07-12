@@ -12,7 +12,7 @@ internal static class ServiceCollectionExtension
 
         return new TokenValidationParameters
         {
-            ValidIssuer = option.ValidIssuer,
+            ValidIssuers = option.ValidIssuers,
             ValidAudiences = option.ValidAudiences,
             // specify the security key used for 
             IssuerSigningKey = new SymmetricSecurityKey(key),

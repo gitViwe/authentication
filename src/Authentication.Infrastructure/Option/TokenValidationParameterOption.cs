@@ -3,9 +3,6 @@ namespace Authentication.Infrastructure.Option;
 internal sealed class TokenValidationParameterOption
 {
     public const string SectionName = "TokenValidationParameterOption";
-    
-    [Required]
-    public string ValidIssuer { get; init; } = string.Empty;
 
     [Required]
     [MinLength(32)]
@@ -24,5 +21,7 @@ internal sealed class TokenValidationParameterOption
     [MinimumItems(1)]
     public IEnumerable<string> ValidAudiences { get; init; } = [];
     
-    
+    [Required]
+    [MinimumItems(1)]
+    public IEnumerable<string> ValidIssuers { get; init; } = [];
 }

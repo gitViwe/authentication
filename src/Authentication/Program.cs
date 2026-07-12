@@ -1,11 +1,15 @@
 using Authentication.Application;
 using Authentication.Application.Endpoint;
+using Authentication.Configuration;
 using Authentication.Infrastructure;
 using Authentication.Infrastructure.Extension;
 using Authentication.OpenApi;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration
+    .AddConfigurationProvider();
 
 builder.Services
     .AddOpenApi(options =>

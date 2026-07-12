@@ -20,7 +20,7 @@ services:
       JsonWebTokenOption__ValidAudiences__1: http://localhost:5056
       # Token validation
       TokenValidationParameterOption__Secret: ${AUTH__JWT_SECRET}
-      TokenValidationParameterOption__ValidIssuer: http://localhost:5056
+      TokenValidationParameterOption__ValidIssuers__0: http://localhost:5056
       TokenValidationParameterOption__ValidAudiences__0: http://localhost:5109
       TokenValidationParameterOption__ValidAudiences__1: http://localhost:5056
       # API key
