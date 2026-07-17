@@ -17,7 +17,8 @@ builder.Services
         options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     })
     .RegisterApplicationLayer()
-    .RegisterInfrastructureLayer();
+    .RegisterInfrastructureLayer()
+    .AddHealthChecks();
 
 var app = builder.Build();
 
@@ -32,6 +33,8 @@ app
     .UseHttpsRedirection()
     .UseAuthentication()
     .UseAuthorization();
+
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.MapAccountEndpoint();
 

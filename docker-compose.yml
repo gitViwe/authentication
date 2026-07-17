@@ -20,7 +20,8 @@ services:
       JsonWebTokenOption__ValidAudiences__1: http://localhost:5056
       # Token validation
       TokenValidationParameterOption__Secret: ${AUTH__JWT_SECRET}
-      TokenValidationParameterOption__ValidIssuers__0: http://localhost:5056
+      TokenValidationParameterOption__ValidIssuers__0: auth-api
+      TokenValidationParameterOption__ValidIssuers__1: http://localhost:5056
       TokenValidationParameterOption__ValidAudiences__0: http://localhost:5109
       TokenValidationParameterOption__ValidAudiences__1: http://localhost:5056
       # API key
@@ -36,6 +37,12 @@ services:
       PassKeyAuthenticationOption__AllowedOrigins__1: http://localhost:5056
     ports:
       - "5056:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,12 +68,16 @@ services:
       retries: 5
   
   ##################################
-  # OpenTelemetry
+  # Observability
 
   otel-collector:
-    image: otel/opentelemetry-collector:0.103.0
+    image: otel/opentelemetry-collector-contrib:0.116.1
     hostname: otel-collector
     container_name: otel-collector
+    environment:
+      DEPLOY_ENV: dev
+      OTEL_COL_VERSION: "0.116.1"
+      HOSTNAME: otel-collector
     volumes:
       - ./config/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     command: [ "--config=/etc/otel-collector-config.yaml" ]
@@ -79,64 +90,120 @@ services:
       - "4318:4318" # OTLP http receiver
       - "55679:55679" # zpages extension
     depends_on:
-      - jaeger
-      - seq
-      - grafana
+      - loki
+      - tempo
       - prometheus
 
-  # https://www.jaegertracing.io/docs/next-release/getting-started/#all-in-one
-  jaeger:
-    image: jaegertracing/all-in-one:1.58
-    hostname: jaeger
-    container_name: jaeger
+  loki:
+    image: grafana/loki:3.7.3
+    hostname: loki
+    container_name: loki
+    command:
+      - -config.file=/etc/loki/loki-config.yml
     volumes:
-      - "./config/jaeger/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
-    command: --query.ui-config /etc/jaeger/jaeger-ui.json
-    environment:
-      COLLECTOR_OTLP_ENABLED: true
-      METRICS_STORAGE_TYPE: prometheus
-      PROMETHEUS_SERVER_URL: http://prometheus:9090
-      PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR: ${PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR:-true}
-      PROMETHEUS_QUERY_NAMESPACE: ${PROMETHEUS_QUERY_NAMESPACE:-}
-      PROMETHEUS_QUERY_DURATION_UNIT: ${PROMETHEUS_QUERY_DURATION_UNIT:-}
-      PROMETHEUS_QUERY_NORMALIZE_CALLS: true
-      PROMETHEUS_QUERY_NORMALIZE_DURATION: true
+      - ./config/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki
     ports:
-      - "16686:16686" # jaeger ui
+      - "3100:3100"
 
-  # https://docs.datalust.co/docs/getting-started-with-docker
-  seq:
-    image: datalust/seq:2024.3
-    hostname: seq
-    container_name: seq
-    restart: on-failure
-    environment:
-      ACCEPT_EULA: Y
+  tempo:
+    image: grafana/tempo:3.0.2
+    hostname: tempo
+    container_name: tempo
+    command:
+      - -config.file=/etc/tempo/tempo.yml
+    volumes:
+      - ./config/tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo-data:/var/tempo
     ports:
-      - "81:80"
+      - "3200:3200"
 
-  # default admin user credentials are admin/admin https://github.com/curityio/grafana/blob/master/README.md
+  prometheus:
+    image: prom/prometheus:v3.13.1
+    hostname: prometheus
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+
   grafana:
-    image: grafana/grafana:10.4.4
+    image: grafana/grafana:12.3.8
     hostname: grafana
     container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
-      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
     ports:
       - "3000:3000"
     depends_on:
+      - loki
+      - tempo
       - prometheus
 
-  prometheus:
-    image: prom/prometheus:v2.45.6
-    hostname: prometheus
-    container_name: prometheus
-    volumes:
-      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  ##################################
+  # Tests
+  
+  k6:
+    image: grafana/k6:latest
+    container_name: k6-telemetry
+    restart: unless-stopped
 
+    depends_on:
+      auth-api:
+        condition: service_healthy
+
+    environment:
+      # Use the Compose service name and container port—not localhost:5056.
+      BASE_URL: http://auth-api:8080
+
+      # Keep this value because it is sent as the HTTP Origin header,
+      # and the API currently allows this origin.
+      ORIGIN: http://localhost:5109
+
+      EXPECTED_ISSUERS: auth-api,http://localhost:5056
+      EXPECTED_AUDIENCES: http://localhost:5109,http://localhost:5056
+
+      VUS: "2"
+      DURATION: 30s
+      PAUSE_SECONDS: "0.5"
+
+      # Delay after each completed k6 run.
+      K6_INTERVAL_SECONDS: "60"
+
+    volumes:
+      - ./scripts/telemetry-smoke-test.js:/scripts/telemetry-smoke-test.js:ro
+      - k6-results:/results
+
+    working_dir: /results
+    entrypoint: [ "/bin/sh", "-c" ]
+
+    command:
+      - |
+        while true; do
+          echo "Starting k6 telemetry run at $$(date -Iseconds)"
+          k6 run /scripts/telemetry-smoke-test.js || true
+
+          echo "Next telemetry run in $${K6_INTERVAL_SECONDS}s"
+          sleep "$${K6_INTERVAL_SECONDS}"
+        done
   ##################################
   # Volume
 
 volumes:
   postgresqlsystem:
+  grafana-data:
+  loki-data:
+  tempo-data:
+  prometheus-data:
+  k6-results:

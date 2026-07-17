@@ -1,9 +1,58 @@
 apiVersion: 1
 
 datasources:
-  - name: Prometheus A
-    isDefault: true
+  - name: Prometheus
+    uid: PA8FB86EC56A3FF61
     type: prometheus
     access: proxy
     url: http://prometheus:9090
+    isDefault: true
     editable: true
+    jsonData:
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '"trace_id"[=: ]+"?([a-fA-F0-9]+)"?'
+          datasourceUid: tempo
+          url: '$${__value.raw}'
+
+  - name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: true
+    jsonData:
+      nodeGraph:
+        enabled: true
+      serviceMap:
+        datasourceUid: PA8FB86EC56A3FF61
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: '-1m'
+        spanEndTimeShift: '1m'
+        filterByTraceID: true
+        filterBySpanID: false
+        tags:
+          - key: service.name
+            value: service_name
+      tracesToMetrics:
+        datasourceUid: PA8FB86EC56A3FF61
+        spanStartTimeShift: '-1m'
+        spanEndTimeShift: '1m'
+        tags:
+          - key: service.name
+            value: service_name
+        queries:
+          - name: Request rate
+            query: 'sum(rate(http_server_request_duration_seconds_count{$$__tags}[$$__rate_interval]))'
